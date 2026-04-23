@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>幸恵ちゃんの衣服購入記録アプリ</title>
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 20px;
+  background: #fff8fb;
+  color: #333;
+}
+h1 { font-size: 24px; }
+.card {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+label { display:block; margin-top:10px; font-weight:600; }
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 4px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+button {
+  margin-top: 16px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+}
+.save { background: #f7b6c7; }
+.clear { background: #eee; margin-left: 8px; }
+.item-card {
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 12px;
+}
+img.preview {
+  width: 120px;
+  border-radius: 10px;
+  margin-top: 8px;
+}
+</style>
+</head>
+<body>
+<h1>👗 幸恵ちゃんの衣服購入記録アプリ</h1>
+
+<div class="card">
+  <h2>新しく登録する</h2>
+
+  <label>購入日</label>
+  <input type="date" id="date">
+
+  <label>お店の名前</label>
+  <input type="text" id="shop" placeholder="GU など">
+
+  <label>商品名</label>
+  <input type="text" id="item" placeholder="ワンピース など">
+
+  <label>金額（円）</label>
+  <input type="number" id="price" placeholder="3990">
+
+  <label>メモ</label>
+  <textarea id="memo" placeholder="ひとことメモ"></textarea>
+
+  <label>服の写真</label>
+  <input type="file" id="photo" accept="image/*">
+
+  <button class="save" onclick="saveItem()">保存する</button>
+  <button class="clear" onclick="clearAll()">全削除</button>
+</div>
+
+<div class="card">
+  <h2>一覧を見る</h2>
+  <div id="list"></div>
+</div>
+
+<script>
+function getData() {
+  return JSON.parse(localStorage.getItem("clothes_app") || "[]");
+}
+
+function render() {
+  const data = getData();
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  data.forEach(row => {
+    const div = document.createElement("div");
+    div.className = "item-card";
+    div.innerHTML = `
+      <strong>${row.item}</strong><br>
+      購入日：${row.date}<br>
+      お店：${row.shop}<br>
+      金額：¥${row.price}<br>
+      メモ：${row.memo || ""}<br>
+      ${row.photo ? `<img class="preview" src="${row.photo}" alt="服の画像">` : ""}
+    `;
+    list.appendChild(div);
+  });
+}
+
+function saveItem() {
+  const fileInput = document.getElementById("photo");
+  const file = fileInput.files[0];
+
+  const saveRow = (photoData="") => {
+    const row = {
+      date: document.getElementById("date").value,
+      shop: document.getElementById("shop").value,
+      item: document.getElementById("item").value,
+      price: document.getElementById("price").value,
+      memo: document.getElementById("memo").value,
+      photo: photoData
+    };
+
+    const data = getData();
+    data.unshift(row);
+    localStorage.setItem("clothes_app", JSON.stringify(data));
+    render();
+    alert("保存しました😊");
+  };
+
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      saveRow(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  } else {
+    saveRow();
+  }
+}
+
+function clearAll() {
+  if (confirm("本当に全削除しますか？")) {
+    localStorage.removeItem("clothes_app");
+    render();
+  }
+}
+
+render();
+</script>
+</body>
+</html>
